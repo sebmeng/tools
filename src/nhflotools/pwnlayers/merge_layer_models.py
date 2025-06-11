@@ -165,6 +165,18 @@ def combine_two_layer_models(
     split_dict_regis = dfk.groupby(koppeltabel_header_regis, sort=False)[koppeltabel_header_regis].count().to_dict()
     split_dict_other = dfk.groupby(koppeltabel_header_other, sort=False)[koppeltabel_header_other].count().to_dict()
 
+
+    for var in ["top", "botm"]:
+        arr = layer_model_other[var]
+        if np.isnan(arr).any():
+            if var == "botm":
+                # Fill NaNs in botm with mean of top minus 0.5
+                fill_value = float(np.nanmean(layer_model_other["top"].values - 0.5))
+                layer_model_other[var] = arr.fillna(fill_value)
+            else:
+                # Fill NaNs in top with its mean
+                layer_model_other[var] = arr.fillna(float(np.nanmean(arr)))
+                
     layer_model_regis_split = nlmod.dims.layers.split_layers_ds(
         ds=layer_model_regis.sel(layer=list(split_dict_regis.keys())),
         split_dict=split_dict_regis,
